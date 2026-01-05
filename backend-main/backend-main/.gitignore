@@ -1,0 +1,10 @@
+.env
+.venv
+.virtualenv/
+*.venv
+*virtualenv/
+.pyc
+*.pyc
+*bases/
+*logs/
+db.sqlite3  

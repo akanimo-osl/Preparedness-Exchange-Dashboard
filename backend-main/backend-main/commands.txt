@@ -1,0 +1,2 @@
+python manage.py runserver
+python -m celery -A datarepr worker -l info
