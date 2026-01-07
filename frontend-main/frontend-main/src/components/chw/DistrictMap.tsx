@@ -1,11 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { MapContainer, CircleMarker, Tooltip, TileLayer } from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import React, { useEffect, useRef, useState } from "react";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import { Loading } from "../Loading";
 import type { District } from "@/types/chw";
 import { chw } from "@/services/chw";
 import { useToast } from "@/contexts/ToastProvider";
 
+
+mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
 
 export const DistrictMap = () => {
     const { showToast } = useToast();
@@ -43,6 +45,25 @@ export const DistrictMap = () => {
       loadPipeline()
     }, [])
 
+    const mapContainer = useRef(null);
+    const map = useRef(null);
+
+    useEffect(() => {
+      if (map.current) return; // initialize map only once
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [10, 20],
+        zoom: 2,
+      });
+
+      districts?.forEach((district, i) => {
+        new mapboxgl.Marker({ color: getColor(getValue(district)) })
+          .setLngLat(getPseudoPosition(i))
+          .addTo(map.current);
+      });
+    }, [districts]);
+
     if (loading && !districts) return <Loading />
 
   return (
@@ -51,37 +72,7 @@ export const DistrictMap = () => {
 
       {/* MAP */}
       <div className="h-[600px] overflow-hidden rounded-xl border border-[#1f3327] relative">
-  <MapContainer
-    center={[20, 10]} // valid pseudo-center
-    zoom={2}
-    scrollWheelZoom={false}
-    className="h-full w-full"
-  >
-    <TileLayer url="https://tile.openstreetmap.fr/hot/{z}/{x}/{y}.png" />
-
-    {districts?.map((d, i) => {
-      const [lat, lng] = getPseudoPosition(i);
-      return (
-        <CircleMarker
-          key={d.district_name}
-          center={[lat, lng]}
-          radius={15}
-          color="white"
-          weight={2}
-          fillOpacity={0.7}
-          fillColor={getColor(getValue(d))}
-        >
-          <Tooltip direction="top" offset={[0, -6]} opacity={1}>
-            <div className="text-black">
-              <strong>{d.district_name}</strong>
-              <br />
-              {getValue(d)} per 10k
-            </div>
-          </Tooltip>
-        </CircleMarker>
-      );
-    })}
-  </MapContainer>
+        <div ref={mapContainer} style={{ width: '100%', height: '100%' }} />
 
   {/* LEGEND */}
   <div className="absolute bottom-4 right-4 bg-[#0d1f14] px-4 py-3 rounded-md border border-[#1b3526] shadow text-sm">

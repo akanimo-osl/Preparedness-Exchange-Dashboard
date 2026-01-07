@@ -1,0 +1,11 @@
+
+{
+  "star": {
+    "fields": ["hazard", "status", "severity"],
+    "metrics": ["count", "cluster_size"]
+  },
+  "espar": {
+    "fields": ["country", "alert_level"],
+    "metrics": ["signal_frequency"]
+  }
+}

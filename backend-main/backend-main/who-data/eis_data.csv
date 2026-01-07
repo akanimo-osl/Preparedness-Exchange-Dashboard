@@ -1,0 +1,6 @@
+id,country,lat,lon,disease,grade,eventType,status,description,year,reportDate,cases,deaths
+EIS-001,Uganda,1.3733,32.2903,Ebola,Ungraded,EIS,Monitoring,Ebola surveillance in border regions,2025,2025-01-25,0,0
+EIS-002,Rwanda,-1.9403,29.8739,Marburg,Ungraded,EIS,Monitoring,Enhanced Marburg surveillance,2025,2025-01-26,0,0
+EIS-003,Burundi,-3.3731,29.9189,Cholera,Ungraded,EIS,Monitoring,Cholera early warning system active,2025,2025-01-27,5,0
+EIS-004,South Sudan,6.8770,31.3070,Yellow Fever,Ungraded,EIS,Monitoring,Yellow fever surveillance in Juba,2025,2025-01-28,2,0
+EIS-005,Central African Republic,6.6111,20.9394,Mpox,Ungraded,EIS,Monitoring,Mpox surveillance in Bangui,2025,2025-01-29,3,0

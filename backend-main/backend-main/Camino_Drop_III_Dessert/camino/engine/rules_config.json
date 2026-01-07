@@ -1,0 +1,11 @@
+
+[
+  {
+    "condition": "data['severity'] >= 4 and data['hazard'] == 'Ebola'",
+    "action": "Send Red Alert to Ministry of Health"
+  },
+  {
+    "condition": "data['country'] == 'KE' and data['cases'] > 50",
+    "action": "Trigger Local Response Team"
+  }
+]

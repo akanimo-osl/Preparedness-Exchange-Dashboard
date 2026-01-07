@@ -51,6 +51,9 @@ urlpatterns = [
     path('summary/naturaldisaster', NaturalDisasterSummaryView.as_view()),
     path('summary/riftvalleyfever', RiftValleyFeverSummaryView.as_view()),
     
+    # WHO Signal Intelligence endpoints
+    path('who-data', WHODataView.as_view()),
+    path('who-data/health', WHOHealthCheckView.as_view()),
     
     path('heatmap', RegionalHeatmapAPIView.as_view()),
 ]

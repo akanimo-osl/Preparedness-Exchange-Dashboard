@@ -1,11 +1,6 @@
-import React, { useEffect, useState } from "react";
-import {
-  MapContainer,
-  TileLayer,
-  CircleMarker,
-  Tooltip,
-} from "react-leaflet";
-import "leaflet/dist/leaflet.css";
+import React, { useEffect, useRef, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
 import NewsTicker from "@/components/usables/NewsTicker";
 import LiveFeedWatchlist from "@/components/usables/LiveFeedWatchlist";
 import CHWRecruitmentPipeline from "@/components/chw/CHWRecruitmentPipeline";
@@ -14,7 +9,8 @@ import type { ChwListResponse, District } from "@/types/chw";
 import { chw } from "@/services/chw";
 import { useToast } from "@/contexts/ToastProvider";
 import { Loading } from "@/components/Loading";
-import { DistrictMap } from "@/components/chw/DistrictMap";
+
+mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
 
 type Metric = "chws" | "vacancy" | "coverage";
 
@@ -98,6 +94,25 @@ const CHWDistribution: React.FC = () => {
     return "blue";
   };
 
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+
+  useEffect(() => {
+    if (map.current) return; // initialize map only once
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/streets-v11",
+      center: [36.817223, -1.286389],
+      zoom: 5,
+    });
+
+    districts.forEach((district) => {
+      new mapboxgl.Marker()
+        .setLngLat([district.lng, district.lat])
+        .addTo(map.current);
+    });
+  }, []);
+
   return (
     <div className="w-full text-white">
       <section className="flex flex-row gap-3 justify-stretch mt-4">
@@ -109,7 +124,10 @@ const CHWDistribution: React.FC = () => {
               Community Health Worker workforce distribution and gaps analysis
             </p>
 
-           {/* <DistrictMap /> */}
+            <div
+              ref={mapContainer}
+              style={{ width: "100%", height: "500px" }}
+            />
           </div>
 
           <CHWRecruitmentPipeline />

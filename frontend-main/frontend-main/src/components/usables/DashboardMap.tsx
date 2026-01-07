@@ -1,13 +1,15 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import L from "leaflet";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 import {
   Layers,
   ZoomIn,
   ZoomOut
 } from "lucide-react";
 import type { CHWOverview, EsparOverview, ReadinessOverview, StardataOverview } from "@/types";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { capitalize } from "@/utils";
+
+mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
 
 // Custom colored icon maker
 const createIcon = (color: string) =>
@@ -34,6 +36,25 @@ export default function DashboardMap({chw, espar, readiness, stardata}:Prop) {
   const [tabs, setTabs] = useState(['CHW', 'e-SPAR', 'Readiness', 'STAR'])
   const [activeTab, setActivetab] = useState('CHW')
 
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+
+  useEffect(() => {
+    if (map.current) return; // initialize map only once
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v11',
+      center: [11.57, 49.85],
+      zoom: 5,
+    });
+
+    sampleMarkers.forEach(marker => {
+      new mapboxgl.Marker({ color: marker.color })
+        .setLngLat([marker.lng, marker.lat])
+        .addTo(map.current);
+    });
+  }, []);
+
   return (
     <div className="w-full grid grid-cols-1 xl:grid-cols-3 gap-4">
 
@@ -58,29 +79,7 @@ export default function DashboardMap({chw, espar, readiness, stardata}:Prop) {
         </div>
 
         {/* REAL MAP */}
-        <MapContainer
-          center={[49.82, 11.57]}
-          zoom={10}
-          scrollWheelZoom={true}
-          className="w-full h-[400px] rounded-lg"
-        >
-          <TileLayer
-            attribution="&copy; OpenStreetMap contributors"
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-
-          {sampleMarkers.map((m, i) => (
-            <Marker
-              key={i}
-              position={[m.lat, m.lng]}
-              icon={createIcon(m.color)}
-            >
-              <Popup>
-                Marker: {m.lat}, {m.lng}
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        <div ref={mapContainer} style={{ width: '100%', height: '500px' }} />
 
         {/* LEGEND */}
         <div className="absolute bottom-4 left-4 bg-black/60 text-white px-4 py-3 rounded-xl text-sm">

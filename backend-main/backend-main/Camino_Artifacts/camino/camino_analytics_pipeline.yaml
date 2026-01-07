@@ -1,0 +1,11 @@
+
+# Azure ML pipeline definition
+name: camino_star_cluster_pipeline
+type: pipeline
+steps:
+  - name: ingest_data
+    script: ingest.py
+  - name: cluster_analysis
+    script: cluster.py
+  - name: export_results
+    script: export.py

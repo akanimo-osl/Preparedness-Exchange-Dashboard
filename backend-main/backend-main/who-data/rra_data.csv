@@ -1,0 +1,6 @@
+id,country,lat,lon,disease,grade,eventType,status,description,year,reportDate,cases,deaths
+RRA-001,DRC,-4.0383,21.7587,Measles,Grade 2,RRA,Ongoing,Rapid risk assessment for measles outbreak in Kinshasa,2025,2025-01-10,89,3
+RRA-002,Mali,17.5707,-3.9962,Meningitis,Grade 3,RRA,Ongoing,Meningitis belt outbreak assessment,2025,2025-01-12,234,28
+RRA-003,Mozambique,-18.6657,35.5296,Cholera,Grade 2,RRA,Ongoing,Post-cyclone cholera risk assessment,2025,2025-01-14,456,15
+RRA-004,Zimbabwe,-19.0154,29.1549,Typhoid,Grade 1,RRA,Monitoring,Typhoid outbreak risk in Harare,2025,2025-01-16,123,2
+RRA-005,Zambia,-13.1339,27.8493,Anthrax,Grade 2,RRA,Ongoing,Anthrax outbreak in Southern Province,2025,2025-01-19,34,4

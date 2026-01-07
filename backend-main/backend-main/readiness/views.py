@@ -1,4 +1,5 @@
 import re
+from datetime import datetime
 from django.core.files.storage import default_storage
 import pandas as pd
 from django.shortcuts import render
@@ -795,3 +796,211 @@ class RegionalHeatmapAPIView(APIView):
             return RiftValleyFever.objects.all()
         else:
             return ArboVirus.objects.all()
+
+
+class WHODataView(APIView):
+    """
+    API endpoint that returns unified WHO Signal Intelligence data.
+    Combines data from CSV files (PHE, Signal, RRA, EIS) with existing sources.
+    
+    Query Parameters:
+    - dataType: 'signal' | 'readiness_summary' | 'readiness_category' | 'all' (default: 'all')
+    - country: Filter by country name
+    - disease: Filter by disease
+    - eventType: Filter by type (PHE, SIGNAL, RRA, EIS, Readiness, ReadinessCategory)
+    - grade: Filter by grade (Grade 1, 2, 3, Ungraded)
+    - status: Filter by status (Ongoing, Monitoring, Closed, Assessment)
+    - source: Filter by source (WHO, EXISTING)
+    - isSubnational: 'true' | 'false' - Filter by admin level
+    - category: Filter by readiness category name
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        from utils.who_data_parser import WHODataParser, combine_and_deduplicate
+
+        try:
+            who_parser = WHODataParser()
+            
+            # Get data type filter
+            data_type = request.query_params.get('dataType', 'all').lower()
+            
+            if data_type == 'signal':
+                who_events = who_parser.get_signal_events()
+            elif data_type == 'readiness_summary':
+                who_events = who_parser.get_readiness_summary()
+            elif data_type == 'readiness_category':
+                who_events = who_parser.get_readiness_categories()
+            else:
+                who_events = who_parser.parse_all_csv_files()
+
+            # Get existing data from Django models
+            existing_events = self._get_existing_events()
+
+            # Combine and deduplicate
+            all_events = combine_and_deduplicate(who_events, existing_events)
+
+            # Apply filters from query params
+            filtered_events = self._apply_filters(all_events, request.query_params)
+            
+            # Get summary statistics
+            summary = who_parser.get_summary()
+            
+            # Count by data type
+            signal_count = len([e for e in filtered_events if e.get('dataType') == 'signal'])
+            summary_count = len([e for e in filtered_events if e.get('dataType') == 'readiness_summary'])
+            category_count = len([e for e in filtered_events if e.get('dataType') == 'readiness_category'])
+            
+            # Get unique values for filters
+            unique_countries = sorted(list(set(e.get('country', '') for e in filtered_events if e.get('country'))))
+            unique_diseases = sorted(list(set(e.get('disease', '') for e in filtered_events if e.get('disease'))))
+            unique_categories = sorted(list(set(e.get('category', '') for e in filtered_events if e.get('category'))))
+
+            return custom_response(
+                "OK",
+                message="WHO data retrieved successfully",
+                data={
+                    'events': filtered_events,
+                    'metadata': {
+                        'total_events': len(filtered_events),
+                        'by_data_type': {
+                            'signal_events': signal_count,
+                            'readiness_summaries': summary_count,
+                            'readiness_categories': category_count,
+                        },
+                        'existing_events': len(existing_events),
+                        'last_updated': datetime.now().isoformat(),
+                        'files_summary': summary,
+                        'filters': {
+                            'countries': unique_countries,
+                            'diseases': unique_diseases,
+                            'categories': unique_categories,
+                        },
+                        'event_types': {
+                            'phe': len([e for e in who_events if e.get('eventType') == 'PHE']),
+                            'signal': len([e for e in who_events if e.get('eventType') == 'SIGNAL']),
+                            'rra': len([e for e in who_events if e.get('eventType') == 'RRA']),
+                            'eis': len([e for e in who_events if e.get('eventType') == 'EIS']),
+                            'readiness': len([e for e in who_events if e.get('eventType') == 'Readiness']),
+                            'readiness_category': len([e for e in who_events if e.get('eventType') == 'ReadinessCategory']),
+                        }
+                    }
+                },
+                http_status=status.HTTP_200_OK
+            )
+        except Exception as e:
+            import traceback
+            return custom_response(
+                "ERROR",
+                message=f"Failed to retrieve WHO data: {str(e)}",
+                data={'traceback': traceback.format_exc()},
+                http_status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+    def _get_existing_events(self):
+        """Fetch existing events from Django models and convert to dict format"""
+        existing_events = []
+        
+        try:
+            mpox_data = Mpox.objects.all().values('country', 'year')
+            for item in mpox_data:
+                existing_events.append({
+                    'source': 'EXISTING',
+                    'dataType': 'existing',
+                    'country': item.get('country', 'Unknown'),
+                    'disease': 'Mpox',
+                    'year': item.get('year', 2025),
+                    'eventType': 'Readiness',
+                    'status': 'Monitoring',
+                    'grade': 'Ungraded',
+                    'lat': 0.0,
+                    'lon': 0.0,
+                    'cases': 0,
+                    'deaths': 0,
+                    'description': 'Mpox readiness data',
+                    'reportDate': datetime.now().isoformat()
+                })
+        except Exception as e:
+            print(f"Error fetching existing events: {e}")
+
+        return existing_events
+
+    def _apply_filters(self, events, query_params):
+        """Apply query parameter filters to events"""
+        filtered = events
+
+        # Filter by country
+        country = query_params.get('country')
+        if country:
+            filtered = [e for e in filtered if e.get('country', '').lower() == country.lower()]
+
+        # Filter by disease
+        disease = query_params.get('disease')
+        if disease:
+            filtered = [e for e in filtered if disease.lower() in e.get('disease', '').lower()]
+
+        # Filter by event type
+        event_type = query_params.get('eventType')
+        if event_type:
+            filtered = [e for e in filtered if e.get('eventType', '').upper() == event_type.upper()]
+
+        # Filter by grade
+        grade = query_params.get('grade')
+        if grade:
+            filtered = [e for e in filtered if grade.lower() in e.get('grade', '').lower()]
+
+        # Filter by status
+        status_filter = query_params.get('status')
+        if status_filter:
+            filtered = [e for e in filtered if e.get('status', '').lower() == status_filter.lower()]
+
+        # Filter by source
+        source = query_params.get('source')
+        if source:
+            filtered = [e for e in filtered if e.get('source', '').upper() == source.upper()]
+        
+        # Filter by subnational
+        is_subnational = query_params.get('isSubnational')
+        if is_subnational:
+            is_sub = is_subnational.lower() == 'true'
+            filtered = [e for e in filtered if e.get('isSubnational', False) == is_sub]
+        
+        # Filter by category (for readiness_category data)
+        category = query_params.get('category')
+        if category:
+            filtered = [e for e in filtered if category.lower() in e.get('category', '').lower()]
+
+        return filtered
+
+
+class WHOHealthCheckView(APIView):
+    """
+    Health check endpoint for WHO data integration.
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request, *args, **kwargs):
+        from utils.who_data_parser import WHODataParser
+        import os
+
+        parser = WHODataParser()
+        summary = parser.get_summary()
+        
+        csv_status = {}
+        for csv_file in parser.get_all_csv_files():
+            file_path = os.path.join(parser.who_data_dir, csv_file)
+            csv_status[csv_file] = os.path.exists(file_path)
+
+        all_files_present = len(csv_status) > 0 and all(csv_status.values())
+
+        return custom_response(
+            "OK" if all_files_present else "WARNING",
+            message="WHO data health check",
+            data={
+                'status': 'healthy' if all_files_present else 'degraded',
+                'summary': summary,
+                'csv_files': csv_status,
+                'who_data_dir': parser.who_data_dir
+            },
+            http_status=status.HTTP_200_OK
+        )

@@ -1,0 +1,4 @@
+hazard,country,status,severity
+Cholera,NG,active,high
+Dengue,KE,monitoring,medium
+Ebola,UG,active,critical

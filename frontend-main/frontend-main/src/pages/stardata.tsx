@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Dropdown from "@/components/usables/Dropdown";
+import mapboxgl from 'mapbox-gl';
+import 'mapbox-gl/dist/mapbox-gl.css';
 
-import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
-import L from "leaflet";
 import NewsTicker from "@/components/usables/NewsTicker";
 import LiveFeedWatchlist from "@/components/usables/LiveFeedWatchlist";
 import AnalyticsDashboard from "@/components/stardata/AnalyticsDashboard";
@@ -13,44 +13,35 @@ import { stardata } from "@/services/stardata";
 import { Loading } from "@/components/Loading";
 import { Updating } from "@/components/Updating";
 
-const criticalIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/565/565547.png",
-  iconSize: [28, 28],
-});
-
-const highIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/168/168732.png",
-  iconSize: [26, 26],
-});
-
-const mediumIcon = new L.Icon({
-  iconUrl: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
-  iconSize: [26, 26],
-});
+mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
 
 // Example incident data (replace with API later)
 const incidents = [
   {
     id: 1,
     severity: "Critical",
-    position: [49.5897, 11.0039], // Near Erlangen
+    position: [11.0039, 49.5897], // Near Erlangen
   },
   {
     id: 2,
     severity: "High",
-    position: [49.6205, 11.0301],
+    position: [11.0301, 49.6205],
   },
   {
     id: 3,
     severity: "High",
-    position: [49.625, 11.05],
+    position: [11.05, 49.625],
   },
   {
     id: 4,
     severity: "Medium",
-    position: [49.61, 11.09],
+    position: [11.09, 49.61],
   },
 ];
+
+const criticalIcon = "https://cdn-icons-png.flaticon.com/512/565/565547.png";
+const highIcon = "https://cdn-icons-png.flaticon.com/512/168/168732.png";
+const mediumIcon = "https://cdn-icons-png.flaticon.com/512/190/190411.png";
 
 export default function StarData() {
   const [search, setSearch] = useState("");
@@ -84,6 +75,28 @@ export default function StarData() {
       }
       loadEsparSummary()
     }, [hazard, hazardType, severity, status])
+
+    const mapContainer = useRef(null);
+    const map = useRef(null);
+
+    useEffect(() => {
+      if (map.current) return; // initialize map only once
+      map.current = new mapboxgl.Map({
+        container: mapContainer.current,
+        style: 'mapbox://styles/mapbox/streets-v11',
+        center: [11.0039, 49.5897],
+        zoom: 5,
+      });
+
+      incidents.forEach(incident => {
+        new mapboxgl.Marker({ 
+            color: incident.severity === "Critical" ? "#EF4343" : incident.severity === "High" ? "#E6B91E" : "#3BB143",
+            // icon: getIcon(incident.severity)
+          })
+          .setLngLat(incident.position)
+          .addTo(map.current);
+      });
+    }, []);
 
     if (loading && !summaryData) return <Loading />
 
@@ -164,43 +177,7 @@ export default function StarData() {
                     </p>
 
                     <div className="relative h-[500px] rounded-xl overflow-hidden border border-gray-800">
-                    <MapContainer
-                        center={[49.6, 11.05]}
-                        zoom={11}
-                        scrollWheelZoom={true}
-                        className="h-full w-full z-0"
-                    >
-                        <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution="&copy; OpenStreetMap contributors"
-                        />
-
-                        {/* INCIDENT MARKERS */}
-                        {incidents.map((item) => (
-                        <Marker
-                            key={item.id}
-                            position={item.position as any}
-                            icon={getIcon(item.severity)}
-                        >
-                            <Popup>
-                            <p>
-                                <strong>Severity:</strong> {item.severity}
-                            </p>
-                            </Popup>
-                        </Marker>
-                        ))}
-
-                        {/* Example shaded region */}
-                        <Circle
-                        center={[49.59, 11.02]}
-                        radius={3000}
-                        pathOptions={{
-                            color: "#0ea5e9",
-                            fillColor: "#0ea5e9",
-                            fillOpacity: 0.2,
-                        }}
-                        />
-                    </MapContainer>
+                    <div ref={mapContainer} style={{ width: '100%', height: '500px' }} />
 
                     {/* Severity Legend */}
                     <div className="absolute bottom-4 left-4 bg-[#0d1b2adc] p-4 rounded-lg text-sm backdrop-blur-sm">

@@ -1,0 +1,6 @@
+id,country,lat,lon,disease,grade,eventType,status,description,year,reportDate,cases,deaths
+PHE-001,Nigeria,9.0820,8.6753,Cholera,Grade 3,PHE,Ongoing,Cholera outbreak in northern Nigeria affecting multiple states,2025,2025-01-15,1250,45
+PHE-002,Ethiopia,9.1450,40.4897,Measles,Grade 2,PHE,Ongoing,Measles outbreak in Oromia region,2025,2025-01-18,890,12
+PHE-003,South Africa,-30.5595,22.9375,Mpox,Grade 2,PHE,Ongoing,Mpox cases reported in Gauteng province,2025,2025-01-20,156,3
+PHE-004,Kenya,-1.2921,36.8219,Dengue,Grade 1,PHE,Monitoring,Dengue fever cases in coastal regions,2025,2025-01-22,340,5
+PHE-005,Tanzania,-6.3690,34.8888,Cholera,Grade 2,PHE,Ongoing,Cholera outbreak in Dar es Salaam,2025,2025-01-25,567,18
