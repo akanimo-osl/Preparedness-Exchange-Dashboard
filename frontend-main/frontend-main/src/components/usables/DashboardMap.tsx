@@ -9,7 +9,7 @@ import type { CHWOverview, EsparOverview, ReadinessOverview, StardataOverview } 
 import { useState, useEffect, useRef } from "react";
 import { capitalize } from "@/utils";
 
-mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN ?? "";
 
 // Custom colored icon maker
 const createIcon = (color: string) =>

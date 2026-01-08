@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server"
-import * as XLSX from "xlsx"
+import { NextResponse } from "next/server";
+import * as XLSX from "xlsx";
 import { initializeDatabase, saveWHOEvents, getWHOEventsFromDB, getLastSyncMetadata } from "@/lib/db-config"
 
 export const dynamic = "force-dynamic"
