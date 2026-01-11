@@ -7,7 +7,10 @@ import { chw } from "@/services/chw";
 import { useToast } from "@/contexts/ToastProvider";
 
 
-mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
+const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
+if (mapboxToken) {
+  mapboxgl.accessToken = mapboxToken;
+}
 
 export const DistrictMap = () => {
     const { showToast } = useToast();
@@ -50,6 +53,7 @@ export const DistrictMap = () => {
 
     useEffect(() => {
       if (map.current) return; // initialize map only once
+      if (!mapboxToken) return;
       map.current = new mapboxgl.Map({
         container: mapContainer.current,
         style: 'mapbox://styles/mapbox/streets-v11',

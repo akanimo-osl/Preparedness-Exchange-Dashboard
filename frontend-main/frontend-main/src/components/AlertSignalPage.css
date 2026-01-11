@@ -1,0 +1,9 @@
+.alertsignal-error {
+  color: #f87171;
+}
+
+.alertsignal-debug-info {
+  margin-top: 20px;
+  color: #9ca3af;
+  font-size: 12px;
+}

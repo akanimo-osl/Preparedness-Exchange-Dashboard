@@ -10,7 +10,10 @@ import { chw } from "@/services/chw";
 import { useToast } from "@/contexts/ToastProvider";
 import { Loading } from "@/components/Loading";
 
-mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
+const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
+if (mapboxToken) {
+  mapboxgl.accessToken = mapboxToken;
+}
 
 type Metric = "chws" | "vacancy" | "coverage";
 
@@ -99,6 +102,7 @@ const CHWDistribution: React.FC = () => {
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
+    if (!mapboxToken) return;
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: "mapbox://styles/mapbox/streets-v11",

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import * as XLSX from "xlsx";
 import { initializeDatabase, saveWHOEvents, getWHOEventsFromDB, getLastSyncMetadata } from "@/lib/db-config"
+import process from "process";
 
 export const dynamic = "force-dynamic"
 export const revalidate = 0

@@ -30,7 +30,10 @@ const gradeColors: Record<string, string> = {
   'Ungraded': '#6b7280',
 };
 
-mapboxgl.accessToken = process.env.MAPBOX_ACCESS_TOKEN;
+const mapboxToken = import.meta.env.VITE_MAPBOX_ACCESS_TOKEN as string | undefined;
+if (mapboxToken) {
+  mapboxgl.accessToken = mapboxToken;
+}
 
 // Map Controller for programmatic navigation
 function MapController({ selectedEvent }: { selectedEvent?: WHOSignalEvent | null }) {
@@ -53,7 +56,7 @@ export default function WHOEventsMap({ events, onEventClick, selectedEvent }: WH
 
   // Filter events with valid coordinates
   const eventsWithCoords = useMemo(() => 
-    events.filter(e => e.lat && e.lon && e.lat !== 0 && e.lon !== 0),
+    events.filter(e => Number.isFinite(e.lat) && Number.isFinite(e.lon) && e.lat !== 0 && e.lon !== 0),
     [events]
   );
 
@@ -62,7 +65,7 @@ export default function WHOEventsMap({ events, onEventClick, selectedEvent }: WH
     if (eventsWithCoords.length === 0) return [0, 20] as [number, number];
     const avgLat = eventsWithCoords.reduce((sum, e) => sum + (e.lat || 0), 0) / eventsWithCoords.length;
     const avgLon = eventsWithCoords.reduce((sum, e) => sum + (e.lon || 0), 0) / eventsWithCoords.length;
-    return [avgLat, avgLon] as [number, number];
+    return [avgLon, avgLat] as [number, number];
   }, [eventsWithCoords]);
 
   const getColor = (event: WHOSignalEvent) => {
@@ -74,19 +77,30 @@ export default function WHOEventsMap({ events, onEventClick, selectedEvent }: WH
 
   useEffect(() => {
     if (map.current) return; // initialize map only once
+    if (!mapboxToken) return;
     map.current = new mapboxgl.Map({
       container: mapContainer.current!,
       style: 'mapbox://styles/mapbox/streets-v11',
-      center: [selectedEvent?.lon || 0, selectedEvent?.lat || 0],
+      center: (selectedEvent?.lon && selectedEvent?.lat) ? [selectedEvent.lon, selectedEvent.lat] : center,
       zoom: 5,
     });
 
-    events.forEach(event => {
+    eventsWithCoords.forEach(event => {
       new mapboxgl.Marker()
         .setLngLat([event.lon, event.lat])
         .addTo(map.current);
     });
-  }, [events, selectedEvent]);
+  }, [eventsWithCoords, selectedEvent, center]);
+
+  if (!mapboxToken) {
+    return (
+      <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-white/10 flex items-center justify-center">
+        <div className="text-sm text-gray-300">
+          Map disabled: missing `VITE_MAPBOX_ACCESS_TOKEN`.
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-[400px] rounded-xl overflow-hidden border border-white/10">
