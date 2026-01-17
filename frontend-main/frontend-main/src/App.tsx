@@ -15,6 +15,7 @@ import Readiness from './pages/readiness';
 import CHWDistribution from './pages/chw';
 import AlertsManagement from './pages/alerts';
 import AlertSignalPage from '@/pages/alerts-signals';
+import LpiPage from './modules/logistics/LpiPage';
 import { NewsProvider } from './contexts/NewsProvider';
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
                 <Route path="star_tracker" element={<StarData />} />
                 <Route path="alerts" element={<AlertsManagement />} />
                 <Route path="alerts-signals" element={<AlertSignalPage />} />
+                <Route path="logistics" element={<LpiPage />} />
                 <Route path="reports" element={<h1>Reports</h1>} />
               </Route>
             </Routes>

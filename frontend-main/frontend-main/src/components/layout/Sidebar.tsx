@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
-import { 
-  LayoutGrid, Users, Shield, AlertTriangle, MapPin, Bell, FileText, ChevronRight 
+import {
+  LayoutGrid, Users, Shield, AlertTriangle, MapPin, Bell, FileText, ChevronRight, Truck
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -42,6 +42,11 @@ export default function Sidebar() {
       path: "/alerts-signals",
       icon: <Bell size={18} />,
     },
+    {
+      name: "Logistics",
+      path: "/logistics",
+      icon: <Truck size={18} />,
+    },
     // {
     //   name: "Reports",
     //   path: "/reports",
@@ -54,9 +59,9 @@ export default function Sidebar() {
 
       {/* WHO Logo */}
       <div className="flex flex-col items-center text-center mb-4">
-        <img 
-          src="/logo.png" 
-          alt="WHO" 
+        <img
+          src="/logo.png"
+          alt="WHO"
           className="w-36 mb-2 opacity-90"
         />
       </div>

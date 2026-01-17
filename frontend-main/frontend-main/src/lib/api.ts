@@ -71,7 +71,7 @@ const processQueue = (error: any, token: string | null = null) => {
       resolve(token!);
     }
   });
-  
+
   failedQueue = [];
 };
 
@@ -100,7 +100,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       if (isRefreshing) {
         // If already refreshing, queue this request
-        return new Promise((resolve, reject) => { 
+        return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
         })
           .then(token => {
@@ -130,7 +130,7 @@ api.interceptors.response.use(
         );
 
         const { access_token, refresh_token } = response.data;
-        
+
         TokenManager.setTokens({
           accessToken: access_token,
           refreshToken: refresh_token,
@@ -141,7 +141,7 @@ api.interceptors.response.use(
         // Retry original request with new token
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return api(originalRequest);
-        
+
       } catch (refreshError) {
         processQueue(refreshError, null);
         TokenManager.clearTokens();
@@ -160,7 +160,7 @@ api.interceptors.response.use(
 const redirectToLogin = () => {
   if (typeof window !== 'undefined') {
     const currentPath = window.location.pathname + window.location.search;
-    
+
     // Avoid redirect loop if already on login page
     if (window.location.pathname.startsWith("/login")) {
       return;
