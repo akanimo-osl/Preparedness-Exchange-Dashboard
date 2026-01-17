@@ -37,11 +37,7 @@ export default function Sidebar() {
       icon: <Bell size={18} />,
       // badge: 3,
     },
-    {
-      name: "Alerts & Signals",
-      path: "/alerts-signals",
-      icon: <Bell size={18} />,
-    },
+
     {
       name: "Logistics",
       path: "/logistics",
